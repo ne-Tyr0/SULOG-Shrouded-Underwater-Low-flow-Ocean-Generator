@@ -4,7 +4,7 @@
 
 A 3D-printed duct (shroud) narrows the flow from a 45 mm tube to a 26 mm throat, so the water speeds up about 3× at the rotor in our sealed bench rig. The rig compares three duct shapes (A: short flare, B: long flare, C′: straight control) by measuring rotor RPM and electrical power.
 
-**View the 3D model:** https://ne-tyr0.github.io/SULOG-Shrouded-Underwater-Low-flow-Ocean-Generator/
+**View the 3D model** (prototype and market-ready concept, with exploded view): https://ne-tyr0.github.io/SULOG-Shrouded-Underwater-Low-flow-Ocean-Generator/
 
 ## Status
 
