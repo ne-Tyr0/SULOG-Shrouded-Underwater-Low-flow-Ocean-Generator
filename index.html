@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SULOG 3D Model</title>
+<meta name="description" content="3D model of SULOG, a ducted tidal turbine prototype. ERobolution 2026.">
+<style>
+html,body{margin:0;height:100%;background:#EDF2F1;color:#0D2B33;font-family:system-ui,-apple-system,'Segoe UI',sans-serif}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.tag{position:fixed;left:16px;top:calc(14px + env(safe-area-inset-top));margin:0;pointer-events:none}
+.tag b{display:block;font-size:28px;font-weight:800;letter-spacing:-.01em}
+.tag span{font-size:13px;color:#33505A}
+.hint{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);margin:0;font-size:13px;color:#4F666D;background:rgba(237,242,241,.85);padding:6px 10px;border-radius:8px;white-space:nowrap;pointer-events:none}
+.msg{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);font-size:14px;color:#33505A}
+</style>
+</head>
+<body>
+<canvas id="c" aria-label="3D model of the SULOG prototype. Drag to rotate, pinch or scroll to zoom."></canvas>
+<p class="tag"><b>SULOG</b><span>Shrouded Underwater Low-flow Ocean Generator</span></p>
+<p class="hint">Drag to rotate · Pinch to zoom</p>
+<p class="msg" id="msg">Loading 3D model…</p>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/meshopt_decoder.js"></script>
+<script>
+(function(){
+var T=window.THREE, msg=document.getElementById('msg');
+if(!T){ msg.textContent='Could not load the 3D viewer. Check your connection and reload.'; return; }
+var canvas=document.getElementById('c');
+var renderer=new T.WebGLRenderer({canvas:canvas,antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+var scene=new T.Scene(); scene.background=new T.Color(0xEDF2F1);
+var camera=new T.PerspectiveCamera(35,1,1,20000);
+var controls=new T.OrbitControls(camera,canvas);
+controls.enableDamping=true; controls.dampingFactor=0.08; controls.autoRotate=true; controls.autoRotateSpeed=0.8;
+canvas.addEventListener('pointerdown',function(){ controls.autoRotate=false; });
+scene.add(new T.HemisphereLight(0xffffff,0x8a9a98,0.85));
+var d1=new T.DirectionalLight(0xffffff,0.75); d1.position.set(-600,1200,900); scene.add(d1);
+var d2=new T.DirectionalLight(0xffffff,0.3); d2.position.set(800,400,-700); scene.add(d2);
+function resize(){ var w=window.innerWidth,h=window.innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+window.addEventListener('resize',resize); resize();
+var loader=new T.GLTFLoader(); if(window.MeshoptDecoder) loader.setMeshoptDecoder(window.MeshoptDecoder);
+loader.load('model/sulog_rig.glb',function(g){
+  scene.add(g.scene);
+  var core=new T.Box3(), skip={sump:1,pump:1,hoseIn:1,hoseOut:1,clamps:1,wires:1,lid:1,table:1,uno:1,oled:1,breadboard:1,circuitHave:1,circuitBuy:1};
+  g.scene.traverse(function(o){ var id=o.userData&&o.userData.pid; if(id&&o.userData.label&&!skip[id]) core.expandByObject(o); });
+  if(core.isEmpty()) core.setFromObject(g.scene);
+  var c=core.getCenter(new T.Vector3()), r=core.getSize(new T.Vector3()).length()/2;
+  var fov=camera.fov*Math.PI/180, hf=2*Math.atan(Math.tan(fov/2)*camera.aspect);
+  var dist=camera.aspect<1? r/Math.tan(hf/2) : r/Math.sin(fov/2)*0.95;
+  camera.position.copy(c).add(new T.Vector3(-0.55,0.5,0.95).normalize().multiplyScalar(dist));
+  camera.near=dist/300; camera.far=dist*60; camera.updateProjectionMatrix();
+  controls.target.copy(c); controls.minDistance=dist*0.05; controls.maxDistance=dist*6; controls.update();
+  msg.hidden=true;
+},undefined,function(){ msg.textContent='The model did not load. Reload the page to try again.'; });
+(function tick(){ controls.update(); renderer.render(scene,camera); requestAnimationFrame(tick); })();
+})();
+</script>
+</body>
+</html>
